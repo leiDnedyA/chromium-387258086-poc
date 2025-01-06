@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chrome Crash POC</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin-top: 50px;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      margin: 10px;
+      cursor: pointer;
+    }
+
+    .log {
+      margin-top: 20px;
+      max-height: 300px;
+      overflow-y: auto;
+      border: 1px solid #ccc;
+      padding: 10px;
+      background-color: #f9f9f9;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Chromium OOM DevTools Bug Proof-Of-Concept</h1>
+  <p>Tool to trigger bug for Chromium issue <a href="https://issues.chromium.org/issues/387258086">387258086</a>.</p>
+  <button id="start">Start Stress Test</button>
+
+  <script>
+    let arr = [];
+    let running = false;
+
+    console.log("THIS MESSAGE WILL LOG WHEN THE PAGE LOADS. IF IT DOES NOT GET LOGGED, THE BUG HAS BEEN TRIGGERED.");
+
+    const startStressTest = () => {
+      if (running) {
+        alert('Stress test is already running.');
+        return;
+      }
+
+      running = true;
+      console.log('started stress test. logging every .5 seconds.')
+
+      setInterval(() => {console.log("running...")}, 500);
+
+      try {
+        while (running) {
+          // large matrix multiplication
+          const size = 20000;
+          const matrixA = Array.from({length: size}, () => Array(size).fill(Math.random()));
+          const matrixB = Array.from({length: size}, () => Array(size).fill(Math.random()));
+
+          const result = Array(size).fill().map(() => Array(size).fill(0));
+          for (let i = 0; i < size; i++) {
+            for (let j = 0; j < size; j++) {
+              for (let k = 0; k < size; k++) {
+                result[i][j] += matrixA[i][k] * matrixB[k][j];
+              }
+            }
+          }
+        }
+      } catch (e) {
+        console.error(`Error: ${e.message}`);
+        running = false;
+      }
+    };
+
+    document.getElementById('start').addEventListener('click', startStressTest);
+  </script>
+</body>
+
+</html>
